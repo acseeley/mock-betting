@@ -1,6 +1,8 @@
-import { FormEvent, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import type { FormEvent } from 'react'
 import { supabase } from './supabaseClient'
-import { fetchNflSpreadsDraftKings, NflSpreadGame, SpreadSide } from './oddsApi'
+import { fetchNflSpreadsDraftKings } from './oddsApi'
+import type { NflSpreadGame, SpreadSide } from './oddsApi'
 
 type UserRow = {
   id: string
