@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { supabase } from './supabaseClient'
 import { fetchNflSpreadsDraftKings } from './oddsApi'
 import type { NflSpreadGame, SpreadSide } from './oddsApi'
+import { FiInfo, FiX } from 'react-icons/fi'
 
 type UserRow = {
   id: string
@@ -134,6 +135,13 @@ function App() {
   const [settlingBetId, setSettlingBetId] = useState<string | null>(null)
   const [showFairBalance, setShowFairBalance] = useState<boolean>(false)
 
+  // Modal state
+  const [showLoginModal, setShowLoginModal] = useState<boolean>(false)
+  const [showSignupModal, setShowSignupModal] = useState<boolean>(false)
+  const [loginUsername, setLoginUsername] = useState<string>('')
+  const [signupUsername, setSignupUsername] = useState<string>('')
+  const [deleteConfirmUser, setDeleteConfirmUser] = useState<UserRow | null>(null)
+
   const fetchUsers = async () => {
     const { data, error } = await supabase
       .from('users')
@@ -246,6 +254,112 @@ function App() {
     await fetchUsers()
     await fetchMyBets(newUser.id)
     setLoadingUser(false)
+  }
+
+  // ----- New: separate modal submit handlers -----
+  const handleLoginModalSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    const trimmed = loginUsername.trim()
+    if (!trimmed) return
+
+    setLoadingUser(true)
+    setError('')
+
+    const { data: existing, error: selectError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('username', trimmed)
+      .maybeSingle()
+
+    if (selectError) {
+      setError(selectError.message)
+      setLoadingUser(false)
+      return
+    }
+
+    if (!existing) {
+      setError('User not found. Please sign up first.')
+      setLoadingUser(false)
+      return
+    }
+
+    const user = existing as UserRow
+    setCurrentUser(user)
+    await fetchMyBets(user.id)
+    setShowLoginModal(false)
+    setLoginUsername('')
+    setLoadingUser(false)
+  }
+
+  const handleSignupModalSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    const trimmed = signupUsername.trim()
+    if (!trimmed) return
+
+    setLoadingUser(true)
+    setError('')
+
+    const { data: existing, error: selectError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('username', trimmed)
+      .maybeSingle()
+
+    if (selectError) {
+      setError(selectError.message)
+      setLoadingUser(false)
+      return
+    }
+
+    if (existing) {
+      setError('Username already exists. Please log in instead.')
+      setLoadingUser(false)
+      return
+    }
+
+    const { data: inserted, error: insertError } = await supabase
+      .from('users')
+      .insert({ username: trimmed, display_name: trimmed })
+      .select()
+      .single()
+
+    if (insertError || !inserted) {
+      setError(insertError?.message || 'Failed to create user')
+      setLoadingUser(false)
+      return
+    }
+
+    const newUser = inserted as UserRow
+    setCurrentUser(newUser)
+
+    const tx: TransactionInsert = {
+      user_id: newUser.id,
+      type: 'INITIAL',
+      amount: newUser.starting_balance,
+      balance_after: newUser.current_balance
+    }
+
+    await supabase.from('transactions').insert(tx)
+    await fetchUsers()
+    await fetchMyBets(newUser.id)
+    setShowSignupModal(false)
+    setSignupUsername('')
+    setLoadingUser(false)
+  }
+
+  // ----- New: delete user handler -----
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      const { error } = await supabase.from('users').delete().eq('id', userId)
+      if (error) {
+        setError(error.message)
+        return
+      }
+      await fetchUsers()
+      setDeleteConfirmUser(null)
+    } catch (err: any) {
+      setError(err.message ?? 'Failed to delete user')
+    }
   }
 
   useEffect(() => {
@@ -526,20 +640,16 @@ useEffect(() => {
       <h1>Mock NFL Betting</h1>
 
       <section style={{ marginBottom: '1.5rem' }}>
-        <form
-          onSubmit={handleLogin}
-          style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}
-        >
-          <input
-            type="text"
-            placeholder="Enter username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-          <button type="submit" disabled={loadingUser}>
-            {loadingUser ? 'Loading...' : 'Join / Login'}
-          </button>
-        </form>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          {!currentUser ? (
+            <>
+              <button onClick={() => setShowLoginModal(true)}>Login</button>
+              <button onClick={() => setShowSignupModal(true)}>Sign Up</button>
+            </>
+          ) : (
+            <button onClick={() => { setCurrentUser(null); setUsername('') }}>Logout</button>
+          )}
+        </div>
 
         {currentUser && (
           <div style={{ marginTop: '0.5rem' }}>
@@ -568,6 +678,180 @@ useEffect(() => {
             {error}
           </p>
         )}
+
+        {/* Login Modal */}
+        {showLoginModal && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }}>
+            <div style={{
+              backgroundColor: 'white',
+              padding: '2rem',
+              borderRadius: '8px',
+              maxWidth: '400px',
+              width: '90%',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h2 style={{ margin: 0 }}>Login</h2>
+                <button
+                  type="button"
+                  onClick={() => { setShowLoginModal(false); setLoginUsername(''); }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    padding: 0,
+                    width: '2rem',
+                    height: '2rem'
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+              <form onSubmit={handleLoginModalSubmit}>
+                <input
+                  type="text"
+                  placeholder="Enter username"
+                  value={loginUsername}
+                  onChange={(e) => setLoginUsername(e.target.value)}
+                  style={{ width: '100%', marginBottom: '1rem' }}
+                />
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button type="submit" disabled={loadingUser} style={{ flex: 1 }}>
+                    {loadingUser ? 'Loading...' : 'Login'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowLoginModal(false); setLoginUsername(''); }}
+                    style={{ flex: 1 }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Sign Up Modal */}
+        {showSignupModal && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }}>
+            <div style={{
+              backgroundColor: 'white',
+              padding: '2rem',
+              borderRadius: '8px',
+              maxWidth: '400px',
+              width: '90%',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h2 style={{ margin: 0 }}>Sign Up</h2>
+                <button
+                  type="button"
+                  onClick={() => { setShowSignupModal(false); setSignupUsername(''); }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    padding: 0,
+                    width: '2rem',
+                    height: '2rem'
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+              <form onSubmit={handleSignupModalSubmit}>
+                <input
+                  type="text"
+                  placeholder="Choose a username"
+                  value={signupUsername}
+                  onChange={(e) => setSignupUsername(e.target.value)}
+                  style={{ width: '100%', marginBottom: '1rem' }}
+                />
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button type="submit" disabled={loadingUser} style={{ flex: 1 }}>
+                    {loadingUser ? 'Creating...' : 'Sign Up'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowSignupModal(false); setSignupUsername(''); }}
+                    style={{ flex: 1 }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {deleteConfirmUser && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }}>
+            <div style={{
+              backgroundColor: 'white',
+              padding: '2rem',
+              borderRadius: '8px',
+              maxWidth: '400px',
+              width: '90%',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+            }}>
+              <h2 style={{ margin: '0 0 1rem 0' }}>Confirm Delete</h2>
+              <p style={{ marginBottom: '1.5rem' }}>
+                Are you sure you want to delete <strong>{deleteConfirmUser.display_name || deleteConfirmUser.username}</strong>? This action cannot be undone.
+              </p>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  onClick={() => handleDeleteUser(deleteConfirmUser.id)}
+                  style={{ flex: 1, background: '#dc3545', color: 'white' }}
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={() => setDeleteConfirmUser(null)}
+                  style={{ flex: 1 }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
       <section style={{ marginBottom: '2rem' }}>
@@ -579,6 +863,7 @@ useEffect(() => {
               <tr>
                 <th style={{ textAlign: 'left', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>User</th>
                 <th style={{ textAlign: 'right', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Balance</th>
+                <th style={{ textAlign: 'center', borderBottom: '1px solid #ccc', padding: '0.25rem', width: '2rem' }}>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -589,6 +874,28 @@ useEffect(() => {
                   </td>
                   <td style={{ padding: '0.25rem', textAlign: 'right', borderBottom: '1px solid #eee' }}>
                     {u.current_balance.toFixed(2)}
+                  </td>
+                  <td style={{ padding: '0.25rem', textAlign: 'center', borderBottom: '1px solid #eee' }}>
+                    <button
+                      onClick={() => setDeleteConfirmUser(u)}
+                      style={{
+                        background: '#dc3545',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        padding: '0.25rem 0.5rem',
+                        cursor: 'pointer',
+                        fontSize: '1rem',
+                        width: '2rem',
+                        height: '2rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                      title="Delete user"
+                    >
+                      <FiX />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -639,31 +946,54 @@ useEffect(() => {
                       </td>
                       <td style={{ padding: '0.25rem', textAlign: 'center', borderBottom: '1px solid #eee' }}>
                         {b.status === 'PENDING' ? (
-                          <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center' }}>
+                          <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center', alignItems: 'center' }}>
                             <button
                               disabled={settlingBetId === b.id}
                               onClick={() => handleSettleBet(b, 'WON')}
-                              title={expl}
                             >
                               Won
                             </button>
                             <button
                               disabled={settlingBetId === b.id}
                               onClick={() => handleSettleBet(b, 'LOST')}
-                              title={expl}
                             >
                               Lost
                             </button>
                             <button
                               disabled={settlingBetId === b.id}
                               onClick={() => handleSettleBet(b, 'PUSH')}
-                              title={expl}
                             >
                               Push
                             </button>
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '1.5rem',
+                                height: '1.5rem',
+                                cursor: 'help',
+                                marginLeft: '0.25rem'
+                              }}
+                              title={expl}
+                            >
+                              <FiInfo size={16} />
+                            </span>
                           </div>
                         ) : (
-                          '-'
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '1.5rem',
+                              height: '1.5rem',
+                              cursor: 'help'
+                            }}
+                            title={expl}
+                          >
+                            <FiInfo size={16} />
+                          </span>
                         )}
                       </td>
                     </tr>
