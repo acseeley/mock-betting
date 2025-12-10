@@ -263,6 +263,17 @@ function App() {
   }
 }, [])
 
+useEffect(() => {
+  const pathSegments = window.location.pathname.split('/').filter(Boolean);
+  const usernameFromPath = pathSegments[pathSegments.length - 1];
+
+  if (usernameFromPath && usernameFromPath !== 'mock-betting') {
+    const decoded = decodeURIComponent(usernameFromPath);
+    setUsername(decoded);
+    loginWithUsername(decoded);
+  }
+}, []);
+
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault()
@@ -586,87 +597,90 @@ function App() {
         )}
       </section>
 
-      <section style={{ marginBottom: '2rem' }}>
-        <h2>My Bets</h2>
-        {!currentUser && <p>Log in to see your bets.</p>}
-        {currentUser && myBets.length === 0 && <p>No bets yet.</p>}
-        {currentUser && myBets.length > 0 && (
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
-            <thead>
-              <tr>
-                <th style={{ textAlign: 'left', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Placed</th>
-                <th style={{ textAlign: 'left', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Side</th>
-                <th style={{ textAlign: 'right', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Stake</th>
-                <th style={{ textAlign: 'right', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Line</th>
-                <th style={{ textAlign: 'right', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Odds</th>
-                <th style={{ textAlign: 'center', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Status</th>
-                <th style={{ textAlign: 'center', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Settle</th>
-              </tr>
-            </thead>
-            <tbody>
-              {myBets.map((b) => {
-                const expl = getSpreadExplanation(b)
-                return (
-                  <tr key={b.id}>
-                    <td style={{ padding: '0.25rem', borderBottom: '1px solid #eee' }}>
-                      {new Date(b.placed_at).toLocaleString()}
-                    </td>
-                    <td style={{ padding: '0.25rem', borderBottom: '1px solid #eee' }}>
-                      {b.team_name} ({b.side})
-                    </td>
-                    <td style={{ padding: '0.25rem', textAlign: 'right', borderBottom: '1px solid #eee' }}>
-                      {b.stake.toFixed(2)}
-                    </td>
-                    <td style={{ padding: '0.25rem', textAlign: 'right', borderBottom: '1px solid #eee' }}>
-                      {b.spread_line > 0 ? `+${b.spread_line}` : b.spread_line}
-                    </td>
-                    <td style={{ padding: '0.25rem', textAlign: 'right', borderBottom: '1px solid #eee' }}>
-                      {b.odds_american > 0 ? `+${b.odds_american}` : b.odds_american}
-                    </td>
-                    <td style={{ padding: '0.25rem', textAlign: 'center', borderBottom: '1px solid #eee' }}>
-                      {b.status}
-                    </td>
-                    <td style={{ padding: '0.25rem', textAlign: 'center', borderBottom: '1px solid #eee' }}>
-                      {b.status === 'PENDING' ? (
-                        <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center' }}>
-                          <button
-                            disabled={settlingBetId === b.id}
-                            onClick={() => handleSettleBet(b, 'WON')}
-                            title={expl}
-                          >
-                            Won
-                          </button>
-                          <button
-                            disabled={settlingBetId === b.id}
-                            onClick={() => handleSettleBet(b, 'LOST')}
-                            title={expl}
-                          >
-                            Lost
-                          </button>
-                          <button
-                            disabled={settlingBetId === b.id}
-                            onClick={() => handleSettleBet(b, 'PUSH')}
-                            title={expl}
-                          >
-                            Push
-                          </button>
-                        </div>
-                      ) : (
-                        '-'
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        )}
-        {betError && (
-          <p style={{ color: 'red', marginTop: '0.5rem' }}>
-            {betError}
-          </p>
-        )}
-      </section>
+      {currentUser ? (
+        <section style={{ marginBottom: '2rem' }}>
+          <h2>My Bets</h2>
+          {myBets.length === 0 && <p>No bets yet.</p>}
+          {myBets.length > 0 && (
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'left', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Placed</th>
+                  <th style={{ textAlign: 'left', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Side</th>
+                  <th style={{ textAlign: 'right', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Stake</th>
+                  <th style={{ textAlign: 'right', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Line</th>
+                  <th style={{ textAlign: 'right', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Odds</th>
+                  <th style={{ textAlign: 'center', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Status</th>
+                  <th style={{ textAlign: 'center', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Settle</th>
+                </tr>
+              </thead>
+              <tbody>
+                {myBets.map((b) => {
+                  const expl = getSpreadExplanation(b)
+                  return (
+                    <tr key={b.id}>
+                      <td style={{ padding: '0.25rem', borderBottom: '1px solid #eee' }}>
+                        {new Date(b.placed_at).toLocaleString()}
+                      </td>
+                      <td style={{ padding: '0.25rem', borderBottom: '1px solid #eee' }}>
+                        {b.team_name} ({b.side})
+                      </td>
+                      <td style={{ padding: '0.25rem', textAlign: 'right', borderBottom: '1px solid #eee' }}>
+                        {b.stake.toFixed(2)}
+                      </td>
+                      <td style={{ padding: '0.25rem', textAlign: 'right', borderBottom: '1px solid #eee' }}>
+                        {b.spread_line > 0 ? `+${b.spread_line}` : b.spread_line}
+                      </td>
+                      <td style={{ padding: '0.25rem', textAlign: 'right', borderBottom: '1px solid #eee' }}>
+                        {b.odds_american > 0 ? `+${b.odds_american}` : b.odds_american}
+                      </td>
+                      <td style={{ padding: '0.25rem', textAlign: 'center', borderBottom: '1px solid #eee' }}>
+                        {b.status}
+                      </td>
+                      <td style={{ padding: '0.25rem', textAlign: 'center', borderBottom: '1px solid #eee' }}>
+                        {b.status === 'PENDING' ? (
+                          <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center' }}>
+                            <button
+                              disabled={settlingBetId === b.id}
+                              onClick={() => handleSettleBet(b, 'WON')}
+                              title={expl}
+                            >
+                              Won
+                            </button>
+                            <button
+                              disabled={settlingBetId === b.id}
+                              onClick={() => handleSettleBet(b, 'LOST')}
+                              title={expl}
+                            >
+                              Lost
+                            </button>
+                            <button
+                              disabled={settlingBetId === b.id}
+                              onClick={() => handleSettleBet(b, 'PUSH')}
+                              title={expl}
+                            >
+                              Push
+                            </button>
+                          </div>
+                        ) : (
+                          '-'
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          )}
+          {betError && (
+            <p style={{ color: 'red', marginTop: '0.5rem' }}>
+              {betError}
+            </p>
+          )}
+        </section>
+      ) : (
+        <p>Log in to see your bets.</p>
+      )}
 
       <section style={{ marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
