@@ -249,22 +249,20 @@ function App() {
   }
 
   useEffect(() => {
-    let path = window.location.pathname.replace(/^\/+/, '')
-    const segments = path.split('/').filter(Boolean)
-    let fromUrl: string | undefined
+  const rawHash = window.location.hash
+  if (!rawHash) return
 
-    if (segments.length === 1) {
-      fromUrl = segments[0]
-    } else if (segments.length >= 2 && segments[0] === 'mock-betting') {
-      fromUrl = segments[1]
-    }
+  const cleaned = rawHash.replace(/^#\/?/, '')
+  const segments = cleaned.split('/').filter(Boolean)
+  const fromUrl = segments[0]
 
-    if (fromUrl) {
-      const decoded = decodeURIComponent(fromUrl)
-      setUsername(decoded)
-      loginWithUsername(decoded)
-    }
-  }, [])
+  if (fromUrl) {
+    const decoded = decodeURIComponent(fromUrl)
+    setUsername(decoded)
+    loginWithUsername(decoded)
+  }
+}, [])
+
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault()
