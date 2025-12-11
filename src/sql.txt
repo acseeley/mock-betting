@@ -1,0 +1,73 @@
+-- ============================
+-- USERS
+-- ============================
+create table if not exists public.users (
+  id uuid primary key default gen_random_uuid(),
+  username text not null unique,
+  display_name text,
+  starting_balance numeric(12,2) not null default 1000,
+  current_balance numeric(12,2) not null default 1000,
+  created_at timestamp with time zone default now()
+);
+
+-- ============================
+-- GAMES
+-- ============================
+create table if not exists public.games (
+  id uuid primary key default gen_random_uuid(),
+  season integer not null,
+  week integer not null,
+  home_team text not null,
+  away_team text not null,
+  kickoff_at timestamp with time zone not null,
+  external_game_id text unique,
+  created_at timestamp with time zone default now()
+);
+
+-- ============================
+-- BETS
+-- ============================
+create table if not exists public.bets (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references public.users(id) on delete cascade,
+  game_id uuid references public.games(id) on delete cascade,
+
+  side text not null check (side in ('HOME','AWAY')),
+  team_name text not null,
+  spread_line numeric not null,
+  odds_american integer not null,
+  stake numeric(12,2) not null,
+
+  status text not null default 'PENDING',
+  placed_at timestamp with time zone default now(),
+  settled_at timestamp with time zone,
+
+  payout numeric(12,2),
+  profit numeric(12,2),
+
+  -- fair odds world (no vig)
+  fair_profit numeric(12,2),
+  fair_payout numeric(12,2)
+);
+
+-- ============================
+-- TRANSACTIONS
+-- ============================
+create table if not exists public.transactions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references public.users(id) on delete cascade,
+  bet_id uuid references public.bets(id) on delete set null,
+
+  type text not null,
+  amount numeric(12,2) not null,
+  balance_after numeric(12,2) not null,
+
+  created_at timestamp with time zone default now()
+);
+
+-- ============================
+-- INDEXES
+-- ============================
+create index if not exists idx_bets_user_id on public.bets(user_id);
+create index if not exists idx_bets_game_id on public.bets(game_id);
+create index if not exists idx_transactions_user_id on public.transactions(user_id);

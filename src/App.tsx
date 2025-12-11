@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { FormEvent, MouseEvent } from 'react'
 import { supabase } from './supabaseClient'
 import { fetchNflSpreadsDraftKings } from './oddsApi'
 import type { NflSpreadGame, SpreadSide } from './oddsApi'
@@ -141,6 +141,30 @@ function App() {
   const [loginUsername, setLoginUsername] = useState<string>('')
   const [signupUsername, setSignupUsername] = useState<string>('')
   const [deleteConfirmUser, setDeleteConfirmUser] = useState<UserRow | null>(null)
+  const [infoModalContent, setInfoModalContent] = useState<string | null>(null)
+  const [infoModalPos, setInfoModalPos] = useState<{ top: number; left: number } | null>(null)
+  const [infoForBetId, setInfoForBetId] = useState<string | null>(null)
+
+  const openInfoModal = (e: MouseEvent, content: string, betId?: string) => {
+    // compute a position in case we ever use it, but primary behavior is to mark the bet id
+    const target = e.currentTarget as HTMLElement
+    const rect = target.getBoundingClientRect()
+    const modalWidth = Math.min(320, window.innerWidth - 16)
+    const estimatedHeight = 140
+    let top = rect.top - estimatedHeight - 8
+    let left = rect.left
+    if (left + modalWidth > window.innerWidth - 8) {
+      left = Math.max(8, window.innerWidth - modalWidth - 8)
+    }
+    if (top < 8) {
+      top = rect.bottom + 8
+    }
+    const scrollY = window.scrollY || window.pageYOffset || 0
+    const scrollX = window.scrollX || window.pageXOffset || 0
+    setInfoModalPos({ top: top + scrollY, left: left + scrollX })
+    setInfoModalContent(content)
+    setInfoForBetId(betId ?? null)
+  }
 
   const fetchUsers = async () => {
     const { data, error } = await supabase
@@ -852,6 +876,7 @@ useEffect(() => {
             </div>
           </div>
         )}
+        {/* Info popover replaced by inline row replacement when active */}
       </section>
 
       <section style={{ marginBottom: '2rem' }}>
@@ -924,6 +949,21 @@ useEffect(() => {
               <tbody>
                 {myBets.map((b) => {
                   const expl = getSpreadExplanation(b)
+                  if (infoForBetId === b.id) {
+                    return (
+                      <tr key={b.id}>
+                        <td colSpan={7} style={{ padding: '0.5rem', borderBottom: '1px solid #eee' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
+                            <div style={{ flex: 1, textAlign: 'left' }}>{expl}</div>
+                            <div>
+                              <button className="btn-ghost" onClick={() => { setInfoForBetId(null); setInfoModalContent(null); }} aria-label="Close">×</button>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  }
+
                   return (
                     <tr key={b.id}>
                       <td style={{ padding: '0.25rem', borderBottom: '1px solid #eee' }}>
@@ -965,35 +1005,24 @@ useEffect(() => {
                             >
                               Push
                             </button>
-                            <span
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '1.5rem',
-                                height: '1.5rem',
-                                cursor: 'help',
-                                marginLeft: '0.25rem'
-                              }}
-                              title={expl}
+                            <button
+                              type="button"
+                              className="info-button"
+                              onClick={(e) => openInfoModal(e, expl, b.id)}
+                              aria-label="Spread explanation"
                             >
                               <FiInfo size={16} />
-                            </span>
+                            </button>
                           </div>
                         ) : (
-                          <span
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              width: '1.5rem',
-                              height: '1.5rem',
-                              cursor: 'help'
-                            }}
-                            title={expl}
+                          <button
+                            type="button"
+                            className="info-button"
+                            onClick={(e) => openInfoModal(e, expl, b.id)}
+                            aria-label="Spread explanation"
                           >
                             <FiInfo size={16} />
-                          </span>
+                          </button>
                         )}
                       </td>
                     </tr>
