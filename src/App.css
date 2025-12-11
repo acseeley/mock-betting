@@ -93,6 +93,23 @@ th { text-align: left; color: #333; font-weight: 600 }
   .info-button { width: 40px; height: 40px }
 }
 
+/* Center the main app container and headers */
+.app-container {
+  max-width: 1100px;
+  width: 100%;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+/* Make tables centered but keep their internal alignment left for readability */
+table { margin: 0.5rem auto; }
+table th, table td { text-align: left }
+
+.page-heading { text-align: center; margin-bottom: 0.5rem }
+
+.section { margin-bottom: 1.5rem }
+
 .info-popover {
   background: #fff;
   border: 1px solid #e6e6e6;
@@ -103,7 +120,6 @@ th { text-align: left; color: #333; font-weight: 600 }
   width: 320px;
 }
 
-/* small screens: make popover full width and centered horizontally */
 @media (max-width: 480px) {
   .info-popover { position: fixed !important; left: 8px !important; right: 8px !important; top: auto !important; bottom: 16px !important; width: auto; }
 }

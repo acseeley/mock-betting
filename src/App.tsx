@@ -660,7 +660,7 @@ useEffect(() => {
   }
 
   return (
-    <main className="container" style={{ padding: '1.5rem', maxWidth: 1000, margin: '0 auto' }}>
+    <main className="container app-container">
       <h1>Mock NFL Betting</h1>
 
       <section style={{ marginBottom: '1.5rem' }}>
