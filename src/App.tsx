@@ -222,7 +222,7 @@ function App() {
   }, [currentUser?.id])
 
   const loginWithUsername = async (rawName: string) => {
-    const trimmed = rawName.trim()
+    const trimmed = rawName.trim().toLowerCase()
     if (!trimmed) return
 
     setLoadingUser(true)
@@ -283,7 +283,7 @@ function App() {
   // ----- New: separate modal submit handlers -----
   const handleLoginModalSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    const trimmed = loginUsername.trim()
+    const trimmed = loginUsername.trim().toLowerCase()
     if (!trimmed) return
 
     setLoadingUser(true)
@@ -317,7 +317,7 @@ function App() {
 
   const handleSignupModalSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    const trimmed = signupUsername.trim()
+    const trimmed = signupUsername.trim().toLowerCase()
     if (!trimmed) return
 
     setLoadingUser(true)
