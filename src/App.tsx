@@ -134,6 +134,8 @@ function App() {
   const [myBets, setMyBets] = useState<BetRow[]>([])
   const [settlingBetId, setSettlingBetId] = useState<string | null>(null)
   const [showFairBalance, setShowFairBalance] = useState<boolean>(false)
+  const [showLeaderboard, setShowLeaderboard] = useState<boolean>(false)
+  const [showPastBets, setShowPastBets] = useState<boolean>(false)
 
   // Modal state
   const [showLoginModal, setShowLoginModal] = useState<boolean>(false)
@@ -402,14 +404,7 @@ function App() {
 }, [])
 
 useEffect(() => {
-  const pathSegments = window.location.pathname.split('/').filter(Boolean);
-  const usernameFromPath = pathSegments[pathSegments.length - 1];
-
-  if (usernameFromPath && usernameFromPath !== 'mock-betting') {
-    const decoded = decodeURIComponent(usernameFromPath);
-    setUsername(decoded);
-    loginWithUsername(decoded);
-  }
+  loginWithUsername('adamse');
 }, []);
 
 
@@ -690,7 +685,7 @@ useEffect(() => {
               Show fair balance (no vig)
             </label>
             {showFairBalance && fairBalance != null && (
-              <p style={{ marginTop: '0.25rem', fontSize: '0.9rem', color: '#555' }}>
+              <p style={{ marginTop: '0.25rem', fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
                 Fair balance (if spreads were even money): {fairBalance.toFixed(2)}
               </p>
             )}
@@ -698,7 +693,7 @@ useEffect(() => {
         )}
 
         {error && (
-          <p style={{ color: 'red', marginTop: '0.5rem' }}>
+          <p style={{ color: 'var(--color-error-text)', marginTop: '0.5rem' }}>
             {error}
           </p>
         )}
@@ -711,19 +706,19 @@ useEffect(() => {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backgroundColor: '#333333',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 1000
           }}>
             <div style={{
-              backgroundColor: 'white',
+              backgroundColor: 'var(--color-white)',
               padding: '2rem',
               borderRadius: '8px',
               maxWidth: '400px',
               width: '90%',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+              boxShadow: '0 4px 6px var(--color-shadow-light)'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <h2 style={{ margin: 0 }}>Login</h2>
@@ -776,19 +771,19 @@ useEffect(() => {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backgroundColor: 'var(--color-modal-overlay)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 1000
           }}>
             <div style={{
-              backgroundColor: 'white',
+              backgroundColor: 'var(--color-white)',
               padding: '2rem',
               borderRadius: '8px',
               maxWidth: '400px',
               width: '90%',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+              boxShadow: '0 4px 6px var(--color-shadow-light)'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <h2 style={{ margin: 0 }}>Sign Up</h2>
@@ -841,19 +836,19 @@ useEffect(() => {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backgroundColor: 'var(--color-modal-overlay)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 1000
           }}>
             <div style={{
-              backgroundColor: 'white',
+              backgroundColor: 'var(--color-white)',
               padding: '2rem',
               borderRadius: '8px',
               maxWidth: '400px',
               width: '90%',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+              boxShadow: '0 4px 6px var(--color-shadow-light)'
             }}>
               <h2 style={{ margin: '0 0 1rem 0' }}>Confirm Delete</h2>
               <p style={{ marginBottom: '1.5rem' }}>
@@ -862,7 +857,7 @@ useEffect(() => {
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button
                   onClick={() => handleDeleteUser(deleteConfirmUser.id)}
-                  style={{ flex: 1, background: '#dc3545', color: 'white' }}
+                  style={{ flex: 1, background: 'var(--color-danger)', color: 'var(--color-white)' }}
                 >
                   Delete
                 </button>
@@ -880,32 +875,37 @@ useEffect(() => {
       </section>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2>Leaderboard</h2>
-        {users.length === 0 && <p>No users yet.</p>}
+        <button onClick={() => setShowLeaderboard(!showLeaderboard)} style={{ marginBottom: '1rem' }}>
+          {showLeaderboard ? 'Hide Leaderboard' : 'Show Leaderboard'}
+        </button>
+        {showLeaderboard && (
+          <>
+            <h2>Leaderboard</h2>
+            {users.length === 0 && <p>No users yet.</p>}
         {users.length > 0 && (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
-                <th style={{ textAlign: 'left', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>User</th>
-                <th style={{ textAlign: 'right', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Balance</th>
-                <th style={{ textAlign: 'center', borderBottom: '1px solid #ccc', padding: '0.25rem', width: '2rem' }}>Action</th>
+                <th style={{ textAlign: 'left', borderBottom: '1px solid var(--color-border-medium)', padding: '0.25rem' }}>User</th>
+                <th style={{ textAlign: 'right', borderBottom: '1px solid var(--color-border-medium)', padding: '0.25rem' }}>Balance</th>
+                <th style={{ textAlign: 'center', borderBottom: '1px solid var(--color-border-medium)', padding: '0.25rem', width: '2rem' }}>Action</th>
               </tr>
             </thead>
             <tbody>
               {users.map((u) => (
                 <tr key={u.id}>
-                  <td style={{ padding: '0.25rem', borderBottom: '1px solid #eee' }}>
+                  <td style={{ padding: '0.25rem', borderBottom: '1px solid var(--color-border-light)' }}>
                     {u.display_name || u.username}
                   </td>
-                  <td style={{ padding: '0.25rem', textAlign: 'right', borderBottom: '1px solid #eee' }}>
+                  <td style={{ padding: '0.25rem', textAlign: 'right', borderBottom: '1px solid var(--color-border-light)' }}>
                     {u.current_balance.toFixed(2)}
                   </td>
-                  <td style={{ padding: '0.25rem', textAlign: 'center', borderBottom: '1px solid #eee' }}>
+                  <td style={{ padding: '0.25rem', textAlign: 'center', borderBottom: '1px solid var(--color-border-light)' }}>
                     <button
                       onClick={() => setDeleteConfirmUser(u)}
                       style={{
-                        background: '#dc3545',
-                        color: 'white',
+                        background: 'var(--color-danger)',
+                        color: 'var(--color-white)',
                         border: 'none',
                         borderRadius: '4px',
                         padding: '0.25rem 0.5rem',
@@ -927,112 +927,148 @@ useEffect(() => {
             </tbody>
           </table>
         )}
+          </>
+        )}
       </section>
 
       {currentUser ? (
         <section style={{ marginBottom: '2rem' }}>
-          <h2>My Bets</h2>
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+            <button onClick={() => setShowPastBets(false)} style={{ fontWeight: !showPastBets ? 'bold' : 'normal' }}>
+              Active Bets
+            </button>
+            <button onClick={() => setShowPastBets(true)} style={{ fontWeight: showPastBets ? 'bold' : 'normal' }}>
+              Past Bets
+            </button>
+          </div>
+          <h2>{showPastBets ? 'Past Bets' : 'Active Bets'}</h2>
           {myBets.length === 0 && <p>No bets yet.</p>}
-          {myBets.length > 0 && (
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
-              <thead>
-                <tr>
-                  <th style={{ textAlign: 'left', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Placed</th>
-                  <th style={{ textAlign: 'left', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Side</th>
-                  <th style={{ textAlign: 'right', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Stake</th>
-                  <th style={{ textAlign: 'right', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Line</th>
-                  <th style={{ textAlign: 'right', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Odds</th>
-                  <th style={{ textAlign: 'center', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Status</th>
-                  <th style={{ textAlign: 'center', borderBottom: '1px solid #ccc', padding: '0.25rem' }}>Settle</th>
-                </tr>
-              </thead>
-              <tbody>
-                {myBets.map((b) => {
-                  const expl = getSpreadExplanation(b)
-                  if (infoForBetId === b.id) {
-                    return (
-                      <tr key={b.id}>
-                        <td colSpan={7} style={{ padding: '0.5rem', borderBottom: '1px solid #eee' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
-                            <div style={{ flex: 1, textAlign: 'left' }}>{expl}</div>
-                            <div>
-                              <button className="btn-ghost" onClick={() => { setInfoForBetId(null); setInfoModalContent(null); }} aria-label="Close">×</button>
-                            </div>
-                          </div>
-                        </td>
+          {myBets.length > 0 && (() => {
+            const pendingBets = myBets.filter(b => b.status === 'PENDING')
+            const pastBets = myBets.filter(b => b.status !== 'PENDING')
+            const sortedPendingBets = [...pendingBets].sort((a, b) => {
+              const aTime = games.find(g => g.homeTeam === a.game?.home_team && g.awayTeam === a.game?.away_team)?.commenceTime || ''
+              const bTime = games.find(g => g.homeTeam === b.game?.home_team && g.awayTeam === b.game?.away_team)?.commenceTime || ''
+              return new Date(aTime).getTime() - new Date(bTime).getTime()
+            })
+            const sortedPastBets = [...pastBets].sort((a, b) => {
+              const aTime = games.find(g => g.homeTeam === a.game?.home_team && g.awayTeam === a.game?.away_team)?.commenceTime || ''
+              const bTime = games.find(g => g.homeTeam === b.game?.home_team && g.awayTeam === b.game?.away_team)?.commenceTime || ''
+              return new Date(aTime).getTime() - new Date(bTime).getTime()
+            })
+            const betsToShow = showPastBets ? sortedPastBets : sortedPendingBets
+            
+            return (
+              <>
+                {betsToShow.length === 0 && <p>No {showPastBets ? 'past' : 'active'} bets.</p>}
+                {betsToShow.length > 0 && (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ textAlign: 'left', borderBottom: '1px solid var(--color-border-medium)', padding: '0.25rem' }}>Game Time</th>
+                        <th style={{ textAlign: 'left', borderBottom: '1px solid var(--color-border-medium)', padding: '0.25rem' }}>Side</th>
+                        <th style={{ textAlign: 'right', borderBottom: '1px solid var(--color-border-medium)', padding: '0.25rem' }}>Stake</th>
+                        <th style={{ textAlign: 'right', borderBottom: '1px solid var(--color-border-medium)', padding: '0.25rem' }}>Line</th>
+                        <th style={{ textAlign: 'right', borderBottom: '1px solid var(--color-border-medium)', padding: '0.25rem' }}>Odds</th>
+                        <th style={{ textAlign: 'center', borderBottom: '1px solid var(--color-border-medium)', padding: '0.25rem' }}>Status</th>
+                        <th style={{ textAlign: 'center', borderBottom: '1px solid var(--color-border-medium)', padding: '0.25rem' }}>Action</th>
                       </tr>
-                    )
-                  }
+                    </thead>
+                    <tbody>
+                      {betsToShow.map((b) => {
+                        const expl = getSpreadExplanation(b)
+                        const kickoffDate = games.find(g => g.homeTeam === b.game?.home_team && g.awayTeam === b.game?.away_team)?.commenceTime
+                        const displayDate = kickoffDate ? new Date(kickoffDate) : null
+                        const dayOfWeek = displayDate ? displayDate.toLocaleDateString('en-US', { weekday: 'short' }) : ''
+                        const gameTimeStr = displayDate ? `${dayOfWeek} ${displayDate.toLocaleDateString()} ${displayDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'TBD'
+                        
+                        if (infoForBetId === b.id) {
+                          return (
+                            <tr key={b.id}>
+                              <td colSpan={7} style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-border-light)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
+                                  <div style={{ flex: 1, textAlign: 'left' }}>{expl}</div>
+                                  <div>
+                                    <button className="btn-ghost" onClick={() => { setInfoForBetId(null); setInfoModalContent(null); }} aria-label="Close">×</button>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )
+                        }
 
-                  return (
-                    <tr key={b.id}>
-                      <td style={{ padding: '0.25rem', borderBottom: '1px solid #eee' }}>
-                        {new Date(b.placed_at).toLocaleString()}
-                      </td>
-                      <td style={{ padding: '0.25rem', borderBottom: '1px solid #eee' }}>
-                        {b.team_name} ({b.side})
-                      </td>
-                      <td style={{ padding: '0.25rem', textAlign: 'right', borderBottom: '1px solid #eee' }}>
-                        {b.stake.toFixed(2)}
-                      </td>
-                      <td style={{ padding: '0.25rem', textAlign: 'right', borderBottom: '1px solid #eee' }}>
-                        {b.spread_line > 0 ? `+${b.spread_line}` : b.spread_line}
-                      </td>
-                      <td style={{ padding: '0.25rem', textAlign: 'right', borderBottom: '1px solid #eee' }}>
-                        {b.odds_american > 0 ? `+${b.odds_american}` : b.odds_american}
-                      </td>
-                      <td style={{ padding: '0.25rem', textAlign: 'center', borderBottom: '1px solid #eee' }}>
-                        {b.status}
-                      </td>
-                      <td style={{ padding: '0.25rem', textAlign: 'center', borderBottom: '1px solid #eee' }}>
-                        {b.status === 'PENDING' ? (
-                          <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center', alignItems: 'center' }}>
-                            <button
-                              disabled={settlingBetId === b.id}
-                              onClick={() => handleSettleBet(b, 'WON')}
-                            >
-                              Won
-                            </button>
-                            <button
-                              disabled={settlingBetId === b.id}
-                              onClick={() => handleSettleBet(b, 'LOST')}
-                            >
-                              Lost
-                            </button>
-                            <button
-                              disabled={settlingBetId === b.id}
-                              onClick={() => handleSettleBet(b, 'PUSH')}
-                            >
-                              Push
-                            </button>
-                            <button
-                              type="button"
-                              className="info-button"
-                              onClick={(e) => openInfoModal(e, expl, b.id)}
-                              aria-label="Spread explanation"
-                            >
-                              <FiInfo size={16} />
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            className="info-button"
-                            onClick={(e) => openInfoModal(e, expl, b.id)}
-                            aria-label="Spread explanation"
-                          >
-                            <FiInfo size={16} />
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          )}
+                        return (
+                          <tr key={b.id}>
+                            <td style={{ padding: '0.25rem', borderBottom: '1px solid var(--color-border-light)' }}>
+                              {gameTimeStr}
+                            </td>
+                            <td style={{ padding: '0.25rem', borderBottom: '1px solid var(--color-border-light)' }}>
+                              {b.team_name} ({b.side})
+                            </td>
+                            <td style={{ padding: '0.25rem', textAlign: 'right', borderBottom: '1px solid var(--color-border-light)' }}>
+                              {b.stake.toFixed(2)}
+                            </td>
+                            <td style={{ padding: '0.25rem', textAlign: 'right', borderBottom: '1px solid var(--color-border-light)' }}>
+                              {b.spread_line > 0 ? `+${b.spread_line}` : b.spread_line}
+                            </td>
+                            <td style={{ padding: '0.25rem', textAlign: 'right', borderBottom: '1px solid var(--color-border-light)' }}>
+                              {b.odds_american > 0 ? `+${b.odds_american}` : b.odds_american}
+                            </td>
+                            <td style={{ padding: '0.25rem', textAlign: 'center', borderBottom: '1px solid var(--color-border-light)' }}>
+                              {b.status}
+                            </td>
+                            <td style={{ padding: '0.25rem', textAlign: 'center', borderBottom: '1px solid var(--color-border-light)' }}>
+                              {b.status === 'PENDING' ? (
+                                <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center', alignItems: 'center' }}>
+                                  <button
+                                    disabled={settlingBetId === b.id}
+                                    onClick={() => handleSettleBet(b, 'WON')}
+                                  >
+                                    Won
+                                  </button>
+                                  <button
+                                    disabled={settlingBetId === b.id}
+                                    onClick={() => handleSettleBet(b, 'LOST')}
+                                  >
+                                    Lost
+                                  </button>
+                                  <button
+                                    disabled={settlingBetId === b.id}
+                                    onClick={() => handleSettleBet(b, 'PUSH')}
+                                  >
+                                    Push
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="info-button"
+                                    onClick={(e) => openInfoModal(e, expl, b.id)}
+                                    aria-label="Spread explanation"
+                                  >
+                                    <FiInfo size={16} />
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="info-button"
+                                  onClick={(e) => openInfoModal(e, expl, b.id)}
+                                  aria-label="Spread explanation"
+                                >
+                                  <FiInfo size={16} />
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </>
+            )
+          })()}
           {betError && (
-            <p style={{ color: 'red', marginTop: '0.5rem' }}>
+            <p style={{ color: 'var(--color-error-text)', marginTop: '0.5rem' }}>
               {betError}
             </p>
           )}
@@ -1050,7 +1086,7 @@ useEffect(() => {
         </div>
 
         {oddsError && (
-          <p style={{ color: 'red', marginTop: '0.5rem' }}>
+          <p style={{ color: 'var(--color-error-text)', marginTop: '0.5rem' }}>
             {oddsError}
           </p>
         )}
@@ -1058,11 +1094,14 @@ useEffect(() => {
         {games.length === 0 && !loadingOdds && <p>No games returned.</p>}
 
         <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {games.map((g) => (
+          {(() => {
+            const bettedGameKeys = new Set(myBets.map(b => `${b.game?.away_team}-${b.game?.home_team}`))
+            const availableGames = games.filter(g => !bettedGameKeys.has(`${g.awayTeam}-${g.homeTeam}`))
+            return availableGames.map((g) => (
             <div
               key={g.id}
               style={{
-                border: '1px solid #ddd',
+                border: '1px solid var(--color-border-dark)',
                 borderRadius: 4,
                 padding: '0.5rem 0.75rem'
               }}
@@ -1072,11 +1111,11 @@ useEffect(() => {
                   <strong>
                     {g.awayTeam} @ {g.homeTeam}
                   </strong>
-                  <div style={{ fontSize: '0.85rem', color: '#555' }}>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
                     {new Date(g.commenceTime).toLocaleString()}
                   </div>
                 </div>
-                <div style={{ fontSize: '0.85rem', color: '#555' }}>{g.bookmaker}</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>{g.bookmaker}</div>
               </div>
 
               <div
@@ -1093,7 +1132,7 @@ useEffect(() => {
                     <div>{g.awaySpread?.teamName ?? g.awayTeam}</div>
                     {g.awaySpread && (
                       <button onClick={() => openBetSlip(g, 'AWAY')}>
-                        Bet Away
+                        Bet {g.awayTeam}
                       </button>
                     )}
                   </div>
@@ -1111,7 +1150,7 @@ useEffect(() => {
                     <div>{g.homeSpread?.teamName ?? g.homeTeam}</div>
                     {g.homeSpread && (
                       <button onClick={() => openBetSlip(g, 'HOME')}>
-                        Bet Home
+                        Bet {g.homeTeam}
                       </button>
                     )}
                   </div>
@@ -1126,7 +1165,8 @@ useEffect(() => {
                 </div>
               </div>
             </div>
-          ))}
+            ))
+          })()}
         </div>
       </section>
 
@@ -1135,8 +1175,8 @@ useEffect(() => {
           style={{
             position: 'sticky',
             bottom: 0,
-            background: '#f7f7f7',
-            borderTop: '1px solid #ddd',
+            background: 'var(--color-bg-light)',
+            borderTop: '1px solid var(--color-border-dark)',
             padding: '0.75rem',
             marginTop: '1rem'
           }}
@@ -1176,7 +1216,7 @@ useEffect(() => {
             </button>
           </div>
           {betError && (
-            <p style={{ color: 'red', marginTop: '0.5rem' }}>
+            <p style={{ color: 'var(--color-error-text)', marginTop: '0.5rem' }}>
               {betError}
             </p>
           )}

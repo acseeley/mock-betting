@@ -1,3 +1,30 @@
+/* Color Variables */
+:root {
+  /* Primary Colors */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  
+  /* Neutral/Gray Scale */
+  --color-text-primary: #333333;
+  --color-text-secondary: #555555;
+  --color-text-muted: #888888;
+  --color-border-light: #eeeeee;
+  --color-border-medium: #cccccc;
+  --color-border-dark: #dddddd;
+  --color-bg-light: #f8f9fa;
+  
+  /* Status Colors */
+  --color-danger: #dc3545;
+  --color-danger-dark: #c82333;
+  --color-error: #dc3545;
+  --color-error-text: red;
+  
+  /* Semantic Colors */
+  --color-modal-overlay: rgba(0, 0, 0, 0.5);
+  --color-shadow-light: rgba(0, 0, 0, 0.1);
+  --color-shadow-medium: rgba(0, 0, 0, 0.12);
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -45,12 +72,12 @@
 .btn {
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
-  border: 1px solid #ddd;
-  background: #fff;
+  border: 1px solid var(--color-border-dark);
+  background: var(--color-white);
   cursor: pointer;
 }
 .btn:disabled { opacity: 0.6; cursor: not-allowed }
-.btn-danger { background: #dc3545; color: #fff; border-color: #c82333 }
+.btn-danger { background: var(--color-danger); color: var(--color-white); border-color: var(--color-danger-dark) }
 .btn-ghost { background: transparent; border: none; font-size: 1.25rem; cursor: pointer }
 
 .info-button {
@@ -60,8 +87,8 @@
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  border: 1px solid #ddd;
-  background: #f8f9fa;
+  border: 1px solid var(--color-border-dark);
+  background: var(--color-bg-light);
   padding: 0;
 }
 .info-button:active { transform: translateY(1px) }
@@ -69,24 +96,24 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: var(--color-modal-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
 }
 .modal-panel {
-  background: #fff;
+  background: var(--color-white);
   padding: 1.25rem;
   border-radius: 10px;
   max-width: 480px;
   width: 90%;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  box-shadow: 0 8px 24px var(--color-shadow-medium);
 }
 
 table { width: 100%; border-collapse: collapse }
-th, td { padding: 0.5rem; border-bottom: 1px solid #eee }
-th { text-align: left; color: #333; font-weight: 600 }
+th, td { padding: 0.5rem; border-bottom: 1px solid var(--color-border-light) }
+th { text-align: left; color: var(--color-text-primary); font-weight: 600 }
 
 @media (max-width: 640px) {
   .modal-panel { width: 95%; padding: 1rem }
@@ -111,11 +138,11 @@ table th, table td { text-align: left }
 .section { margin-bottom: 1.5rem }
 
 .info-popover {
-  background: #fff;
-  border: 1px solid #e6e6e6;
+  background: var(--color-white);
+  border: 1px solid var(--color-border-light);
   border-radius: 8px;
   padding: 0.75rem;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  box-shadow: 0 8px 20px var(--color-shadow-medium);
   max-width: 320px;
   width: 320px;
 }
