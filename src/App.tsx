@@ -116,7 +116,6 @@ function getSpreadExplanation(bet: BetRow): string {
 }
 
 function App() {
-  const [username, setUsername] = useState<string>('')
   const [currentUser, setCurrentUser] = useState<UserRow | null>(null)
   const [users, setUsers] = useState<UserRow[]>([])
   const [loadingUser, setLoadingUser] = useState<boolean>(false)
@@ -143,11 +142,9 @@ function App() {
   const [loginUsername, setLoginUsername] = useState<string>('')
   const [signupUsername, setSignupUsername] = useState<string>('')
   const [deleteConfirmUser, setDeleteConfirmUser] = useState<UserRow | null>(null)
-  const [infoModalContent, setInfoModalContent] = useState<string | null>(null)
-  const [infoModalPos, setInfoModalPos] = useState<{ top: number; left: number } | null>(null)
   const [infoForBetId, setInfoForBetId] = useState<string | null>(null)
 
-  const openInfoModal = (e: MouseEvent, content: string, betId?: string) => {
+  const openInfoModal = (e: MouseEvent, _content: string, betId?: string) => {
     // compute a position in case we ever use it, but primary behavior is to mark the bet id
     const target = e.currentTarget as HTMLElement
     const rect = target.getBoundingClientRect()
@@ -161,10 +158,6 @@ function App() {
     if (top < 8) {
       top = rect.bottom + 8
     }
-    const scrollY = window.scrollY || window.pageYOffset || 0
-    const scrollX = window.scrollX || window.pageXOffset || 0
-    setInfoModalPos({ top: top + scrollY, left: left + scrollX })
-    setInfoModalContent(content)
     setInfoForBetId(betId ?? null)
   }
 
@@ -398,7 +391,6 @@ function App() {
 
   if (fromUrl) {
     const decoded = decodeURIComponent(fromUrl)
-    setUsername(decoded)
     loginWithUsername(decoded)
   }
 }, [])
@@ -407,11 +399,6 @@ useEffect(() => {
   loginWithUsername('adamse');
 }, []);
 
-
-  const handleLogin = async (e: FormEvent) => {
-    e.preventDefault()
-    await loginWithUsername(username)
-  }
 
   const openBetSlip = (game: NflSpreadGame, side: 'HOME' | 'AWAY') => {
     if (!currentUser) {
@@ -666,7 +653,7 @@ useEffect(() => {
               <button onClick={() => setShowSignupModal(true)}>Sign Up</button>
             </>
           ) : (
-            <button onClick={() => { setCurrentUser(null); setUsername('') }}>Logout</button>
+            <button onClick={() => { setCurrentUser(null) }}>Logout</button>
           )}
         </div>
 
@@ -989,7 +976,7 @@ useEffect(() => {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
                                   <div style={{ flex: 1, textAlign: 'left' }}>{expl}</div>
                                   <div>
-                                    <button className="btn-ghost" onClick={() => { setInfoForBetId(null); setInfoModalContent(null); }} aria-label="Close">×</button>
+                                    <button className="btn-ghost" onClick={() => { setInfoForBetId(null) }} aria-label="Close">×</button>
                                   </div>
                                 </div>
                               </td>
